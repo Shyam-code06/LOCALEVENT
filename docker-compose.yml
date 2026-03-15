@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:6.0
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+  backend:
+    build:
+      context: "./server (backend)"
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/local-events
+      - PORT=5000
+    depends_on:
+      - mongo
+    volumes:
+      - "./server (backend):/app"
+
+  frontend:
+    build:
+      context: "./client (frontend)"
+      args:
+        VITE_API_URL: http://backend:5000
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:
